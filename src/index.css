@@ -25,4 +25,7 @@ code {
     border: 5px solid #333;
     border-radius: 100px;
     cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
