@@ -12,6 +12,8 @@ export interface BoardItem {
     currentToken: Token | null;
 }
 
+export type Board = BoardItem[];
+
 export interface GameData {
     board: BoardItem[];
     gameStatus: GameState;

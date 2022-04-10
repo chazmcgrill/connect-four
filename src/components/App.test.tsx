@@ -1,5 +1,5 @@
 import { Token } from '../types';
-import { getNewBoard, winCheck } from './App';
+import { getNewBoard, winCheck } from '../utils';
 
 describe('winCheck function', () => {
     it('should return true if column win is found', () => {
