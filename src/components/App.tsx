@@ -133,7 +133,7 @@ const App = () => {
 
         setGameData((currentState) => {
             const newBoard = currentState.board.map((item) =>
-                item.index === lastEmptyItem.index ? { ...item, currentPlayer: Token.Red } : item,
+                item.index === lastEmptyItem.index ? { ...item, currentToken: Token.Red } : item,
             );
             return {
                 board: newBoard,
@@ -157,7 +157,7 @@ const App = () => {
 
         setGameData((currentState) => {
             const newBoard = currentState.board.map((item) =>
-                item.index === randomAIMove.index ? { ...item, currentPlayer: Token.Yellow } : item,
+                item.index === randomAIMove.index ? { ...item, currentToken: Token.Yellow } : item,
             );
             return {
                 board: newBoard,
