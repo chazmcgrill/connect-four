@@ -9,7 +9,7 @@ export enum GameState {
 
 export interface BoardItem {
     index: number;
-    currentPlayer: Token | null;
+    currentToken: Token | null;
 }
 
 export interface GameData {
