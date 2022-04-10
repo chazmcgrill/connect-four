@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
+import { AI } from '../AI';
 import { GameData, GameState, Player, Token } from '../types';
-import { findColumnFirstIndex, getNextColumnItem, getAvailableMoves, getNewBoard, getNextGameData } from '../utils';
+import { findColumnFirstIndex, getNextColumnItem, getNewBoard, getNextGameData } from '../utils';
 import BoardItem from './BoardItem';
 import GameStatusText from './GameStatusText';
 
@@ -10,6 +11,7 @@ const App = () => {
         gameStatus: GameState.HUMAN_TURN,
     });
 
+    /** Do human move */
     const handleBoardItemClick = (index: number) => {
         if (gameData.gameStatus !== GameState.HUMAN_TURN) return;
         const columnFirstIndex = findColumnFirstIndex(index);
@@ -27,13 +29,13 @@ const App = () => {
     };
 
     const handleAIMove = useCallback(() => {
-        const availableMoves = getAvailableMoves(gameData.board);
-        const randomAIMove = availableMoves[Math.floor(Math.random() * availableMoves.length)];
+        const ai = new AI(gameData.board, Token.Yellow);
+        const moveIndex = ai.getMoveIndex();
 
         setGameData((currentState) => {
             return getNextGameData({
                 currentBoard: currentState.board,
-                moveIndex: randomAIMove.index,
+                moveIndex,
                 player: Player.Ai,
                 currentToken: Token.Yellow,
             });

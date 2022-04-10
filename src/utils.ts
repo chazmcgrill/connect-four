@@ -23,7 +23,7 @@ export const getColumnItems = (columnFirstIndex: number, board: BoardItem[]) => 
     return columnItems;
 };
 
-const drawCheck = (board: BoardItem[]) => {
+export const drawCheck = (board: BoardItem[]) => {
     return board.filter((item) => item.currentToken === null).length === 0;
 };
 
