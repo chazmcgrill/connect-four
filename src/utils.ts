@@ -47,7 +47,10 @@ const checkColumnWin = (board: BoardItem[], currentToken: Token) => {
         const columnItems = getColumnItems(columnFirstIndex, board);
         columnItems.forEach((item) => {
             count = item.currentToken === currentToken ? count + 1 : 0;
-            if (count === WIN_LENGTH) hasWin = true;
+            if (count === WIN_LENGTH) {
+                hasWin = true;
+                return;
+            }
         });
         if (hasWin) return true;
     }
@@ -76,7 +79,10 @@ const checkDiagonalWin = (board: BoardItem[], currentToken: Token) => {
         diagonalLane.forEach((index) => {
             const item = board[index];
             count = item.currentToken === currentToken ? count + 1 : 0;
-            if (count === WIN_LENGTH) hasWin = true;
+            if (count === WIN_LENGTH) {
+                hasWin = true;
+                return;
+            }
         });
     });
     if (hasWin) return true;

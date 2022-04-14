@@ -7,12 +7,14 @@ interface MoveObject {
 }
 
 /** Maximum recursion depth, if performance is improved this could go higher */
-const MAX_DEPTH = 6;
+const MAX_DEPTH = 5;
 
 export class AI {
     private board;
     private aiToken;
     private humanToken;
+    private alpha = -Infinity;
+    private beta = Infinity;
 
     /**
      * AI class which uses the minimax algorithm to determine the best move for the AI player
@@ -63,20 +65,30 @@ export class AI {
 
         if (turn === this.aiToken) {
             let bestMove = { index: nullIndex, score: -Infinity };
+            // recursivly find the best move for the ai player
             availableMoveIndexes.forEach((index) => {
                 this.setToken(this.aiToken, index);
                 const { score } = this.minimax(tempBoard, this.humanToken, depth + 1);
                 if (score > bestMove.score) bestMove = { index, score };
                 this.resetToken(index);
+
+                // alpha-beta pruning
+                this.alpha = Math.max(this.alpha, bestMove.score);
+                if (this.beta <= this.alpha) return;
             });
             return bestMove;
         } else {
-            let bestMove = { index: nullIndex, score: +Infinity };
+            let bestMove = { index: nullIndex, score: Infinity };
+            // recursivly find the best move for the human player
             availableMoveIndexes.forEach((index) => {
                 this.setToken(this.humanToken, index);
                 const { score } = this.minimax(tempBoard, this.aiToken, depth + 1);
                 if (score < bestMove.score) bestMove = { index: index, score };
                 this.resetToken(index);
+
+                // alpha-beta pruning
+                this.beta = Math.min(this.beta, bestMove.score);
+                if (this.beta <= this.alpha) return;
             });
             return bestMove;
         }
