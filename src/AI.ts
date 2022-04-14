@@ -32,11 +32,19 @@ export class AI {
         return index;
     }
 
+    private setToken(token: Token, index: number) {
+        this.board[index] = { ...this.board[index], currentToken: token };
+    }
+
+    private resetToken(index: number) {
+        this.board[index] = { ...this.board[index], currentToken: null };
+    }
+
     /* Minimax algorithm function for unbeatable ai */
     private minimax(tempBoard: Board, turn: Token, depth: number): MoveObject {
         const availableMoves = getAvailableMoves(tempBoard);
         const availableMoveIndexes = availableMoves.map((item) => item.index);
-        const startingIndex = -1;
+        const nullIndex = -1;
 
         /* Check for terminal states, return score based on recursion depth and player end state.
            - If human wins we want a lower value the nearest it is to the root node.
@@ -44,31 +52,31 @@ export class AI {
            - For draw no one wins so we return 0.       
         */
         if (winCheck(tempBoard, this.humanToken)) {
-            return { index: startingIndex, score: depth - 10 };
+            return { index: nullIndex, score: depth - 10 };
         } else if (winCheck(tempBoard, this.aiToken)) {
-            return { index: startingIndex, score: 10 - depth };
+            return { index: nullIndex, score: 10 - depth };
         } else if (drawCheck(tempBoard)) {
-            return { index: startingIndex, score: 0 };
+            return { index: nullIndex, score: 0 };
         }
 
-        if (depth > MAX_DEPTH) return { index: startingIndex, score: 0 };
+        if (depth > MAX_DEPTH) return { index: nullIndex, score: 0 };
 
         if (turn === this.aiToken) {
-            let bestMove = { index: 0, score: -Infinity };
-            availableMoveIndexes.forEach((availableSquareIndex) => {
-                tempBoard[availableSquareIndex] = { ...tempBoard[availableSquareIndex], currentToken: turn };
+            let bestMove = { index: nullIndex, score: -Infinity };
+            availableMoveIndexes.forEach((index) => {
+                this.setToken(this.aiToken, index);
                 const { score } = this.minimax(tempBoard, this.humanToken, depth + 1);
-                if (score > bestMove.score) bestMove = { index: availableSquareIndex, score };
-                tempBoard[availableSquareIndex] = { ...tempBoard[availableSquareIndex], currentToken: null };
+                if (score > bestMove.score) bestMove = { index, score };
+                this.resetToken(index);
             });
             return bestMove;
         } else {
-            let bestMove = { index: 0, score: +Infinity };
-            availableMoveIndexes.forEach((availableSquareIndex) => {
-                tempBoard[availableSquareIndex] = { ...tempBoard[availableSquareIndex], currentToken: turn };
+            let bestMove = { index: nullIndex, score: +Infinity };
+            availableMoveIndexes.forEach((index) => {
+                this.setToken(this.humanToken, index);
                 const { score } = this.minimax(tempBoard, this.aiToken, depth + 1);
-                if (score < bestMove.score) bestMove = { index: availableSquareIndex, score };
-                tempBoard[availableSquareIndex] = { ...tempBoard[availableSquareIndex], currentToken: null };
+                if (score < bestMove.score) bestMove = { index: index, score };
+                this.resetToken(index);
             });
             return bestMove;
         }
