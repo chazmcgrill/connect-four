@@ -7,15 +7,12 @@ export enum GameState {
     LOSE,
 }
 
-export interface BoardItem {
-    index: number;
-    currentToken: Token | null;
-}
+export type BoardItem = Token | null;
 
-export type Board = BoardItem[];
+export type Board = BoardItem[][];
 
 export interface GameData {
-    board: BoardItem[];
+    board: Board;
     gameStatus: GameState;
 }
 

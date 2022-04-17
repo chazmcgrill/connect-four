@@ -2,6 +2,8 @@ import { Token, BoardItem as BoardItemType } from '../types';
 
 interface BoardItemProps {
     item: BoardItemType;
+    columnIndex: number;
+    text: string;
     onClick: (index: number) => void;
 }
 
@@ -16,11 +18,11 @@ export const getTokenBackgroundColor = (currentToken: Token | null) => {
     }
 };
 
-const BoardItem = ({ item, onClick }: BoardItemProps) => {
-    const backgroundColor = getTokenBackgroundColor(item.currentToken);
+const BoardItem = ({ item, onClick, columnIndex, text }: BoardItemProps) => {
+    const backgroundColor = getTokenBackgroundColor(item);
     return (
-        <div className="board-item" style={{ backgroundColor }} onClick={() => onClick(item.index)}>
-            {item.index}
+        <div className="board-item" style={{ backgroundColor }} onClick={() => onClick(columnIndex)}>
+            {text}
         </div>
     );
 };

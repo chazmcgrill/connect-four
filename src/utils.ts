@@ -4,15 +4,10 @@ export const BOARD_WIDTH = 7;
 const BOARD_HEIGHT = 6;
 const WIN_LENGTH = 4;
 
-export const getNewBoard = (): BoardItem[] =>
-    Array(BOARD_WIDTH * BOARD_HEIGHT)
+export const getNewBoard = (): BoardItem[][] =>
+    Array(BOARD_WIDTH)
         .fill(null)
-        .map((_, index) => ({ index, currentToken: null }));
-
-export const findColumnFirstIndex = (columnIndex: number): number => {
-    if (columnIndex < BOARD_WIDTH) return columnIndex;
-    return findColumnFirstIndex(columnIndex - BOARD_WIDTH);
-};
+        .map(() => Array(BOARD_HEIGHT).fill(null));
 
 export const getColumnItems = (columnFirstIndex: number, board: BoardItem[]) => {
     const columnItems = [];
@@ -23,118 +18,99 @@ export const getColumnItems = (columnFirstIndex: number, board: BoardItem[]) => 
     return columnItems;
 };
 
-export const drawCheck = (board: BoardItem[]) => {
-    return board.filter((item) => item.currentToken === null).length === 0;
+export const drawCheck = (board: Board) => {
+    return board.flat().filter((item) => item === null).length === 0;
 };
 
-const checkRowWin = (board: BoardItem[], currentToken: Token) => {
-    for (let i = 0; i < BOARD_HEIGHT; i++) {
-        let count = 0;
-        for (let j = 0; j < BOARD_WIDTH; j++) {
-            const item = board[i * BOARD_WIDTH + j];
-            count = item.currentToken === currentToken ? count + 1 : 0;
-            if (count === WIN_LENGTH) return true;
-        }
-    }
-    return false;
-};
-
-const checkColumnWin = (board: BoardItem[], currentToken: Token) => {
-    for (let i = 0; i < BOARD_WIDTH; i++) {
-        let hasWin = false;
-        let count = 0;
-        const columnFirstIndex = findColumnFirstIndex(i);
-        const columnItems = getColumnItems(columnFirstIndex, board);
-        columnItems.forEach((item) => {
-            count = item.currentToken === currentToken ? count + 1 : 0;
-            if (count === WIN_LENGTH) {
-                hasWin = true;
-                return;
-            }
-        });
-        if (hasWin) return true;
-    }
-    return false;
-};
-
-const DIAGONAL_LANE_INDEXES = [
-    [3, 9, 15, 21],
-    [4, 10, 16, 22, 28],
-    [5, 11, 17, 23, 29, 35],
-    [6, 12, 18, 24, 30, 36],
-    [13, 19, 25, 31, 37],
-    [20, 26, 32, 38],
-    [3, 11, 19, 27],
-    [2, 10, 18, 26, 34],
-    [1, 9, 17, 25, 33, 41],
-    [0, 8, 16, 24, 32, 40],
-    [7, 15, 23, 31, 39],
-    [14, 22, 30, 38],
+const DIRECTIONS = [
+    { x: 0, y: 1 }, // North-South
+    { x: 1, y: 0 }, // East-West
+    { x: 1, y: 1 }, // Northeast-Southwest
+    { x: 1, y: -1 }, // Southeast-Northwest
 ];
 
-const checkDiagonalWin = (board: BoardItem[], currentToken: Token) => {
-    let hasWin = false;
-    DIAGONAL_LANE_INDEXES.forEach((diagonalLane) => {
-        let count = 0;
-        diagonalLane.forEach((index) => {
-            const item = board[index];
-            count = item.currentToken === currentToken ? count + 1 : 0;
-            if (count === WIN_LENGTH) {
-                hasWin = true;
-                return;
+export const winCheck = (board: Board, placedX: number, placedY: number) => {
+    console.log('winCheck', { placedX, placedY });
+    if (placedX < 0 || placedY < 0) return false;
+    let i,
+        j,
+        x,
+        y,
+        maxX,
+        maxY,
+        steps,
+        count = 0;
+
+    // Check all directions
+    outerloop: for (i = 0; i < DIRECTIONS.length; i++, count = 0) {
+        // Set up bounds to go 3 pieces forward and backward
+        x = Math.min(Math.max(placedX - 3 * DIRECTIONS[i].x, 0), board.length - 1);
+        y = Math.min(Math.max(placedY - 3 * DIRECTIONS[i].y, 0), board[0].length - 1);
+        maxX = Math.max(Math.min(placedX + 3 * DIRECTIONS[i].x, board.length - 1), 0);
+        maxY = Math.max(Math.min(placedY + 3 * DIRECTIONS[i].y, board[0].length - 1), 0);
+        steps = Math.max(Math.abs(maxX - x), Math.abs(maxY - y));
+
+        console.log('board', { x, y });
+
+        for (j = 0; j < steps; j++, x += DIRECTIONS[i].x, y += DIRECTIONS[i].y) {
+            if (board[x]?.[y] === board[placedX][placedY]) {
+                // Increase count
+                if (++count >= WIN_LENGTH) {
+                    break outerloop;
+                }
+            } else {
+                // Reset count
+                count = 0;
             }
-        });
-    });
-    if (hasWin) return true;
-    return false;
-};
+        }
+    }
 
-export const winCheck = (board: BoardItem[], currentToken: Token) => {
-    const rowWin = checkRowWin(board, currentToken);
-    if (rowWin) return true;
-
-    const columnWin = checkColumnWin(board, currentToken);
-    if (columnWin) return true;
-
-    const diagonalWin = checkDiagonalWin(board, currentToken);
-    if (diagonalWin) return true;
-
-    return false;
+    return count >= WIN_LENGTH;
 };
 
 /** Gets the new game status at the end of a turn */
-export const getNewGameStatus = (board: BoardItem[], currentToken: Token, currentPlayer: Player) => {
-    if (winCheck(board, currentToken)) return currentPlayer === Player.Human ? GameState.WIN : GameState.LOSE;
+export const getNewGameStatus = (board: Board, currentPlayer: Player, columnIndex: number, rowIndex: number) => {
+    if (winCheck(board, columnIndex, rowIndex)) return currentPlayer === Player.Human ? GameState.WIN : GameState.LOSE;
     if (drawCheck(board)) return GameState.DRAW;
     return currentPlayer === Player.Human ? GameState.AI_TURN : GameState.HUMAN_TURN;
 };
 
-export const getNextColumnItem = (board: BoardItem[], columnFirstIndex: number) => {
-    const columnItems = getColumnItems(columnFirstIndex, board);
-    const emptyColumnItems = columnItems.filter((item) => item.currentToken === null);
-    return emptyColumnItems[emptyColumnItems.length - 1];
+export const getNextColumnItem = (board: Board, columnIndex: number) => {
+    const rowIndex = board[columnIndex].findIndex((item) => item === null);
+    return rowIndex > -1 ? rowIndex : null;
 };
 
-export const getAvailableMoves = (board: BoardItem[]) => {
-    const availableMoves = [];
-    for (let i = 0; i < BOARD_WIDTH; i++) {
-        const availableColumnItem = getNextColumnItem(board, i);
-        if (availableColumnItem) availableMoves.push(availableColumnItem);
-    }
+export const getAvailableMoves = (board: Board) => {
+    const availableMoves: { rowIndex: number; columnIndex: number }[] = [];
+    board.forEach((_, columnIndex) => {
+        const rowIndex = getNextColumnItem(board, columnIndex);
+        if (rowIndex !== null) availableMoves.push({ rowIndex, columnIndex });
+    });
     return availableMoves;
 };
 
 interface GetNextGameDataOptions {
     currentBoard: Board;
-    moveIndex: number;
+    placedRowIndex: number;
+    placedColumnIndex: number;
     player: Player;
     currentToken: Token;
 }
 
-export const getNextGameData = ({ currentBoard, moveIndex, player, currentToken }: GetNextGameDataOptions) => {
-    const newBoard = currentBoard.map((item) => (item.index === moveIndex ? { ...item, currentToken } : item));
+export const getNextGameData = ({
+    currentBoard,
+    placedRowIndex,
+    placedColumnIndex,
+    player,
+    currentToken,
+}: GetNextGameDataOptions) => {
+    const newBoard = currentBoard.map((column, columnIndex) =>
+        column.map((item, rowIndex) =>
+            columnIndex === placedColumnIndex && rowIndex === placedRowIndex ? currentToken : item,
+        ),
+    );
     return {
         board: newBoard,
-        gameStatus: getNewGameStatus(newBoard, currentToken, player),
+        gameStatus: getNewGameStatus(newBoard, player, placedColumnIndex, placedRowIndex),
     };
 };
